@@ -1,0 +1,41 @@
+https://vulnhub.com/entry/pwnlab-init,158/
+
+1. cek source code all page (login, config, index) pake php://filter/convert.base64-encode/resource=(page)
+2. oke kita dapat info user dan pass dari root untuk masuk database nya
+3. masuk database
+4. kita lihat ternyata ada informasi user dan pass dari user di system nya dengan pass yang ter-encrypt dengan base64
+5. login ke salah satu user (saya ambil contoh pake kent)
+6. wah ternyata ada file upload untuk image, seperti biasa kita coba cek normal dulu untuk mengetahui flownya
+7. ternyata ia hanya melemparkan balik imagenya, liat di newtab, lol ternyata dia nunjukin path nya
+8. oke ternyata (ip vm)/upload bisa di listing
+9. lets gow upload backdoor cuy
+10. saya copy dari /usr/share/webshells/php/reverse-shell aja
+11. edit ip vm kali kita dan mau pake port berapa bebas (saya ambil contoh pake 9990)
+12. siap siap aja di netcat **nc -nvlp 9990**
+13. kita upload image normal, janlup intercept nyala cuy
+14. kita edit, taruh web shell, dan change namenya jadi *.php.png (pake burpsuite)
+15. go forward!
+16. wah ternyata file hasil upload ke hash wkwkwk
+17. coba cek cek all page deh
+18. ternyata dia pake cookie lang
+19. oke kita nyalain intercept lagi dan klik asal di pwnlab page biar nge-trigger di intercept
+20. edit di bagian cookie dengan "lang=../upload/(nama file hasil hash)"
+21. forward
+22. boom!, kita masuk shell www-data cuy
+23. kita coba naikin hak akses ke salah satu user di sistem bernama kent tadi pake command su
+24. oke pasti gabisa kan. caranya kita harus spawn /bin/bash cuy **python -c 'import pty; pty.spawn("/bin/bash");'
+25. oke langsung su ke user kent pake password yang ada di database tadi, ternyata bisa
+26. eksplor aja user kent ini bisa ngapain aja, tapi setelah saya coba ini user gaguna cok wkwkwk, akhirnya gua nyoba masuk ke mike. ternyata user mike gabisa dimasukin pake password yg ada di database tadi cuy
+27. oke gua coba masuk ke user kane aja dah
+28. di homedir nya ada script dgn nama "msgmike" yang di-own sama mike dan ada suid nya dia
+29. gw liat isi scriptnya pake strings sih ada command cat /home/mike/msg.txt
+30. oke kita coba buat command cat abal abal di homedir dengan isi "/bin/bash"
+31. chmod 777 biar bisa dipake as a script
+32. ubah variable PATH ke /home/kane
+33. oke kita jalanin scriptnyna mike tadi "./msgmike"
+34. wokeh kita masuk as user mike ini // sebenernya jujur rada heran sih kenapa bisa. cuman kemungkinan kayanya karena isi script msgmike ini ada 'cat' nya jadi bisa. simple nya tuh gini, kita kan udah ngerubah biar gak pake command cat ori tapi pake command cat buatan kita sendiri yang udah diisi "/bin/bash". kenapa bisa masuk ke user mike ini karena kemungkinan karena ketika kita jalanin script msgmike ini itu sejatinya kita jalanin as user mike dan ke /bin/bash ke shellnya dia. jadi begitulah, jujur aku juga masih rada keder untuk saat ini
+35. baiklah, kita ubah variable PATH ke aslinya biar bisa jalanin command command lain
+36. kita liat isi homedir mike dan ada file "msg2root" yang kalo kita jalanin itu baka ngembaliin kembalian yang nantinya kita diminta ngirim pesan ke root.
+37. kita isi aja pake "popol; bash -p // popol itu random word aja. dan kenapa kita bisa masuk? kasusnya sama kaya tadi sih. walaupun script ini kita jalanin as mike tapi sejatinya ini tuh root yang jalanin gitu. bash -p 
+38. boom jadi root!
+39. dapet flagnya deh, ayeee
